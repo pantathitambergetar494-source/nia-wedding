@@ -14,7 +14,10 @@
     let generated;
     try {
       generated = names.map((name,index) => {
-        const baseInviteUrl = Core.inviteUrl($('base-url').value.trim(), name);\n        const urlObj = new URL(baseInviteUrl);\n        urlObj.searchParams.set('v', Date.now().toString(36) + '-' + index.toString(36));\n        const url = urlObj.toString();
+        const baseInviteUrl = Core.inviteUrl($('base-url').value.trim(), name);
+        const urlObj = new URL(baseInviteUrl);
+        urlObj.searchParams.set('v', Date.now().toString(36) + '-' + index.toString(36));
+        const url = urlObj.toString();
         const message = 'Assalamu’alaikum warahmatullahi wabarakatuh.\n\nKepada Yth. ' + name + '\n\nDengan memohon rahmat dan rida Allah SWT, kami mengundang Bapak/Ibu/Saudara/i untuk hadir dan memberikan doa restu pada pernikahan kami, Nia & Muhadar.\n\nInformasi acara dan konfirmasi kehadiran dapat dilihat melalui undangan berikut:\n' + url + '\n\nMerupakan kebahagiaan bagi kami atas kehadiran dan doa restunya. Terima kasih.\n\nWassalamu’alaikum warahmatullahi wabarakatuh.';
         return {name,url,message};
       });

@@ -13,8 +13,8 @@
     if (!names.length || names.length > 100 || names.some(n => n.length > 100)) { $('generator-status').textContent = 'Isi 1–100 nama, maksimal 100 karakter per nama.'; return; }
     let generated;
     try {
-      generated = names.map(name => {
-        const url = Core.inviteUrl($('base-url').value.trim(), name);
+      generated = names.map((name,index) => {
+        const baseInviteUrl = Core.inviteUrl($('base-url').value.trim(), name);\n        const urlObj = new URL(baseInviteUrl);\n        urlObj.searchParams.set('v', Date.now().toString(36) + '-' + index.toString(36));\n        const url = urlObj.toString();
         const message = 'Assalamu’alaikum warahmatullahi wabarakatuh.\n\nKepada Yth. ' + name + '\n\nDengan memohon rahmat dan rida Allah SWT, kami mengundang Bapak/Ibu/Saudara/i untuk hadir dan memberikan doa restu pada pernikahan kami, Nia & Muhadar.\n\nInformasi acara dan konfirmasi kehadiran dapat dilihat melalui undangan berikut:\n' + url + '\n\nMerupakan kebahagiaan bagi kami atas kehadiran dan doa restunya. Terima kasih.\n\nWassalamu’alaikum warahmatullahi wabarakatuh.';
         return {name,url,message};
       });

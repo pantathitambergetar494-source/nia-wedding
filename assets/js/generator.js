@@ -1,8 +1,14 @@
 (function () {
   'use strict';
-  const $ = id => document.getElementById(id), Core = window.WeddingCore;
+  const $ = id => document.getElementById(id);
+  const Core = window.WeddingCore, Config = window.WEDDING_CONFIG;
   let entries = [];
-  $('base-url').value = window.WEDDING_CONFIG.siteUrl;
+  if (!Core || !Config) {
+    const status = $('generator-status');
+    if (status) status.textContent = 'Generator belum termuat sempurna. Muat ulang halaman.';
+    return;
+  }
+  $('base-url').value = Config.siteUrl || (location.origin + '/');
   async function copy(text) {
     try { await navigator.clipboard.writeText(text); $('generator-status').textContent = 'Berhasil disalin.'; }
     catch (_) { $('generator-status').textContent = 'Pilih teks yang tersedia, lalu salin secara manual.'; }

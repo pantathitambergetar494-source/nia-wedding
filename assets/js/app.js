@@ -213,7 +213,7 @@
     field.style.cssText = 'position:fixed;left:-9999px;top:0';document.body.appendChild(field);field.select();
     let copied = false;try { copied = document.execCommand('copy'); } catch (_) {}field.remove();return copied;
   }
-  async function api(path = '', options = {}, timeoutMs = 26000) {
+  async function api(path = '', options = {}, timeoutMs = 40000) {
     const controller = new AbortController(), timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const response = await fetch(C.apiUrl + path, {...options,signal:controller.signal,cache:'no-store'});
@@ -250,7 +250,9 @@
     $('refresh-wishes').disabled = true;
     $('wishes-status').hidden = false; $('wishes-status').textContent = 'Memuat ucapan…';
     try {
-      const data = await api();
+      let data;
+      try { data = await api(); }
+      catch (_) { data = await api('?retry=' + Date.now(),{},40000); }
       if (loadId !== latestLoad) return;
       if (!Array.isArray(data.data)) throw new Error('Daftar ucapan belum dapat dibaca.');
       compatible = data.version === 2;

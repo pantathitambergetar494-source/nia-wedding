@@ -51,7 +51,7 @@
   function updateAudio() {
     const audio = $('bg-audio'), playing = !audio.paused && !audio.ended;
     $('audio-toggle').setAttribute('aria-pressed', String(playing));
-    const label = playing ? 'Jeda musik: Shape of You — Ed Sheeran' : 'Putar musik: Shape of You — Ed Sheeran';
+    const label = playing ? 'Jeda musik: Shape of My Heart — Backstreet Boys' : 'Putar musik: Shape of My Heart — Backstreet Boys';
     $('audio-toggle').setAttribute('aria-label', label); $('audio-label').textContent = label;
   }
   async function playAudio(manual = false) {

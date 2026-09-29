@@ -26,7 +26,7 @@
   function setFormBusy(busy) {
     sending = busy;
     fields.forEach(id => { $(id).disabled = busy || !!pending; });
-    submit.disabled = busy || !compatible;
+    submit.disabled = busy;
     submit.textContent = busy ? 'Mengirim…' : pending ? 'Coba kirim lagi' : 'Kirim Ucapan';
     $('check-receipt').hidden = !pending;
     $('check-receipt').disabled = busy;
@@ -244,6 +244,7 @@
       container.append(card);
     });
     $('more-wishes').hidden = visibleWishes >= wishes.length;
+    if (!$('more-wishes').hidden) $('more-wishes').textContent = 'Lihat ' + Math.min(8, wishes.length - visibleWishes) + ' ucapan lainnya';
   }
   async function loadWishes(keepFormStatus = false) {
     const loadId = ++latestLoad;
@@ -262,7 +263,7 @@
       $('stat-mantu').textContent = data.stats?.mantuHadir == null ? '—' : String(data.stats.mantuHadir);
       $('wishes-status').hidden = wishes.length > 0 && !data.truncated;
       $('wishes-status').textContent = data.truncated ? 'Menampilkan 200 ucapan terbaru.' : 'Belum ada ucapan. Jadilah yang pertama memberikan doa terbaik.';
-      if (!keepFormStatus && !sending && !pending) formStatus(compatible ? 'Ucapan akan tampil setelah berhasil tersimpan.' : 'Konfirmasi kehadiran sedang disiapkan. Silakan coba lagi nanti.');
+      if (!keepFormStatus && !sending && !pending) formStatus(compatible ? 'Ucapan akan tampil setelah berhasil tersimpan.' : 'Daftar ucapan memakai layanan lama, tapi Anda tetap dapat mencoba mengirim konfirmasi.');
     } catch (error) {
       if (loadId !== latestLoad) return;
       $('wishes-status').hidden = false; $('wishes-status').textContent = (wishes.length ? 'Menampilkan ucapan yang sebelumnya dimuat. ' : '') + 'Gagal memuat pembaruan. Tekan “Muat ulang” untuk mencoba lagi.';
@@ -290,7 +291,7 @@
   }
   function updateCharacterCount() { $('message-count').textContent = $('comment-msg').value.length + ' / 1.000 karakter'; }
   async function sendWish(event) {
-    event.preventDefault(); if (sending || !compatible) return;
+    event.preventDefault(); if (sending) return;
     if (!pending && !form.reportValidity()) return;
     if ($('website').value) { formStatus('Pengiriman tidak dapat diproses.', 'error'); return; }
     try {

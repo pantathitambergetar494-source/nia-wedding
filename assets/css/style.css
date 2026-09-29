@@ -194,8 +194,8 @@ dialog::backdrop{background:#0b1214d9;backdrop-filter:blur(4px)}
 .calendar-sheet>p:not(.eyebrow){font-size:13px;margin-bottom:24px}
 .calendar-sheet .button{width:100%;margin-bottom:12px}
 .calendar-sheet .field-note{margin:8px 0 0!important;font-size:11px!important}
-.motion-ready .reveal{opacity:0;transform:translateY(18px);transition:opacity .65s ease var(--reveal-delay,0s),transform .65s cubic-bezier(.2,.65,.3,1) var(--reveal-delay,0s)}
-.motion-ready .reveal.is-visible{opacity:1;transform:none}
+.motion-ready .reveal{opacity:0;transform:translateY(38px) scale(.985);filter:blur(2px);transition:opacity .8s ease var(--reveal-delay,0s),transform .8s cubic-bezier(.2,.65,.3,1) var(--reveal-delay,0s),filter .65s ease var(--reveal-delay,0s);will-change:opacity,transform}
+.motion-ready .reveal.is-visible{opacity:1;transform:none;filter:none}
 @media(min-width:1024px){
   .invitation{margin-right:0;margin-left:auto}
   .cover-panel{margin:0 0 0 auto;flex:0 0 var(--page-width)}
@@ -215,4 +215,4 @@ dialog::backdrop{background:#0b1214d9;backdrop-filter:blur(4px)}
 }
 @media(max-height:680px){.cover-copy{gap:16px;padding-top:20px;padding-bottom:20px}.cover-portrait{width:78px;height:106px;margin-bottom:12px}.guest-card{margin-top:16px;padding:11px 14px}.cover-name{font-size:30px}.hero-content>.eyebrow{margin-bottom:18px}.script-name{margin-bottom:18px}.hero-date{margin-bottom:16px}.hero-scroll{margin-top:12px}}
 @media(max-width:359px){.section{padding-left:18px;padding-right:18px}.section-title{font-size:31px}.event-card{padding-left:18px;padding-right:18px}.event-card h3{font-size:27px}.form-card{padding:22px 15px}.hero-content>.eyebrow{font-size:9px}.hero-date{font-size:11px}.lightbox{padding-left:44px;padding-right:44px}}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.motion-ready .reveal{opacity:1;transform:none}.intro-running .hero-reveal{opacity:1;transform:none}.intro-running .hero-content{pointer-events:auto}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.motion-ready .reveal{opacity:1;transform:none;filter:none}.intro-running .hero-reveal{opacity:1;transform:none}.intro-running .hero-content{pointer-events:auto}}

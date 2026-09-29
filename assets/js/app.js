@@ -9,7 +9,7 @@
   let activeCalendar = C.events[0], galleryIndex = 0, galleryReturnFocus;
   let pending = null, sending = false, compatible = false, wishes = [], visibleWishes = 8;
   let latestLoad = 0;
-  let startMotion = () => {}, heroRevealed = false, heroInView = true;
+  let startMotion = () => {}, motionStarted = false, heroRevealed = false, heroInView = true;
   const form = $('comment-form'), submit = $('submit-wish'), fields = ['author','comment-msg','attendance-akad','attendance-mantu'];
 
   function notify(message) {
@@ -108,7 +108,7 @@
           if (entry.isIntersecting) entry.target.classList.add('is-visible');
           else entry.target.classList.remove('is-visible');
         });
-      }, {threshold:0, rootMargin:'0px 0px -12px 0px'});
+      }, {threshold:0.1, rootMargin:'0px 0px -8% 0px'});
       const heroObserver = new IntersectionObserver(entries => {
         entries.forEach(entry => {
           heroInView = entry.isIntersecting;
@@ -117,9 +117,16 @@
       }, {threshold:0});
       // Start only after opening; keep observing so entrance effects can replay.
       startMotion = () => {
+        if (motionStarted) return;
+        motionStarted = true;
+        const reveals = [...document.querySelectorAll('.reveal')];
+        reveals.forEach(el => el.classList.remove('is-visible'));
         document.body.classList.add('motion-ready');
-        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-        heroObserver.observe($('beranda'));
+        // Paint the hidden state first so the browser cannot skip the transition.
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          reveals.forEach(el => observer.observe(el));
+          heroObserver.observe($('beranda'));
+        }));
       };
     }
     const navLinks = [...$('bottom-nav').querySelectorAll('a')];

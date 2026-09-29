@@ -1,0 +1,7 @@
+{
+  "name": "undangan-nia-muhadar",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Undangan HTML statis dengan proxy RSVP Vercel",
+  "engines": {"node": "22.x"}
+}

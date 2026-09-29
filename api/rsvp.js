@@ -11,7 +11,7 @@ function createHandler(fetchImpl = globalThis.fetch, endpoint = process.env.GOOG
     const fail = (code, message, retrySafe = false) => send(code,{status:'error',message,retrySafe});
     if (!['GET','POST'].includes(req.method)) { res.setHeader('Allow','GET, POST');return fail(405,'Metode tidak didukung.',true); }
     if (!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(endpoint)) return fail(503,'Layanan ucapan belum dikonfigurasi.',true);
-    const controller = new AbortController(), timer = setTimeout(() => controller.abort(),22000);
+    const controller = new AbortController(), timer = setTimeout(() => controller.abort(),28000);
     async function upstream(params, body) {
       const url = new URL(endpoint);Object.entries(params).forEach(([k,v]) => url.searchParams.set(k,v));
       const response = await fetchImpl(url,{method:body ? 'POST' : 'GET',redirect:'follow',cache:'no-store',signal:controller.signal,

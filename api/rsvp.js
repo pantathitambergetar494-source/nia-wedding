@@ -11,14 +11,16 @@ function createHandler(fetchImpl = globalThis.fetch, endpoint = process.env.GOOG
     const fail = (code, message, retrySafe = false) => send(code,{status:'error',message,retrySafe});
     if (!['GET','POST'].includes(req.method)) { res.setHeader('Allow','GET, POST');return fail(405,'Metode tidak didukung.',true); }
     if (!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(endpoint)) return fail(503,'Layanan ucapan belum dikonfigurasi.',true);
-    const controller = new AbortController(), timer = setTimeout(() => controller.abort(),28000);
-    async function upstream(params, body) {
-      const url = new URL(endpoint);Object.entries(params).forEach(([k,v]) => url.searchParams.set(k,v));
-      const response = await fetchImpl(url,{method:body ? 'POST' : 'GET',redirect:'follow',cache:'no-store',signal:controller.signal,
-        ...(body ? {headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)} : {})});
-      if (!response.ok) throw new Error('UPSTREAM_HTTP');
-      let data;try { data = await response.json(); } catch (_) { throw new Error('UPSTREAM_JSON'); }
-      return data;
+    async function upstream(params, body, timeoutMs = 24000) {
+      const controller = new AbortController(), timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const url = new URL(endpoint);Object.entries(params).forEach(([k,v]) => url.searchParams.set(k,v));
+        const response = await fetchImpl(url,{method:body ? 'POST' : 'GET',redirect:'follow',cache:'no-store',signal:controller.signal,
+          ...(body ? {headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)} : {})});
+        if (!response.ok) throw new Error('UPSTREAM_HTTP');
+        let data;try { data = await response.json(); } catch (_) { throw new Error('UPSTREAM_JSON'); }
+        return data;
+      } finally { clearTimeout(timer); }
     }
     try {
       const query = new URL(req.url,'https://local.invalid').searchParams;
@@ -27,9 +29,23 @@ function createHandler(fetchImpl = globalThis.fetch, endpoint = process.env.GOOG
         const id = query.get('id') || '';
         if (action === 'receipt' && !/^[a-zA-Z0-9_-]{16,80}$/.test(id)) return fail(400,'ID pengiriman tidak valid.',true);
         const data = await upstream({api:'2',action,...(action === 'receipt' ? {id} : {})});
+        const fresh = query.has('fresh');
+        const cacheList = () => {
+          if (fresh || action !== 'list') return;
+          res.setHeader('Cache-Control','public, max-age=0, s-maxage=20, stale-while-revalidate=60');
+          res.setHeader('Vercel-CDN-Cache-Control','public, s-maxage=20, stale-while-revalidate=60');
+        };
         // Legacy Apps Script can still display old wishes; writes require v2.
-        if (Array.isArray(data) && action === 'list') return send(200,{status:'success',version:1,data:data.slice(0,200),stats:{comments:data.length},truncated:data.length>200});
+        if (Array.isArray(data) && action === 'list') {
+          cacheList();
+          return send(200,{status:'success',version:1,data:data.slice(0,200),stats:{comments:data.length},truncated:data.length>200});
+        }
         if (data.status !== 'success' || data.version !== 2) return fail(503,'Layanan ucapan sedang disiapkan. Silakan coba lagi nanti.',true);
+        if (action === 'list' && Array.isArray(data.data)) {
+          cacheList();
+          const all = data.data;
+          return send(200,{...data,data:all.slice(0,200),truncated:data.truncated === true || all.length > 200});
+        }
         return send(200,data);
       }
       const origin = req.headers.origin;
@@ -43,17 +59,15 @@ function createHandler(fetchImpl = globalThis.fetch, endpoint = process.env.GOOG
       if (body?.website) return fail(400,'Pengiriman tidak dapat diproses.',true);
       let validated;
       try { validated = Core.validateWish(body); } catch (error) { return fail(400,error.message,true); }
-      // Stop before writing if the owner has not deployed the compatible script.
-      const health = await upstream({api:'2',action:'health'});
-      if (health.status !== 'success' || health.version !== 2) return fail(503,'Layanan konfirmasi sedang disiapkan. Silakan coba lagi nanti.',true);
-      const data = await upstream({api:'2'},validated);
+      // Write directly. A separate health check doubled latency and shared the same serverless time budget.
+      const data = await upstream({api:'2'},validated,26000);
       if (data.status === 'error') return fail(data.code === 'CONFLICT' ? 409 : 400,data.message || 'Ucapan belum dapat disimpan.',data.retrySafe === true);
       if (data.status !== 'success' || data.version !== 2 || data.requestId !== validated.requestId || data.saved !== true) throw new Error('UNCONFIRMED');
       return send(200,data);
     } catch (_) {
       // A timeout can occur after appendRow: never claim failure or retry blindly.
       return fail(502,'Status pengiriman belum dapat dikonfirmasi. Periksa status atau coba lagi dengan ID yang sama.');
-    } finally { clearTimeout(timer); }
+    }
   };
 }
 module.exports = createHandler();
